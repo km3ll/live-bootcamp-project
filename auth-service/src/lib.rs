@@ -1,6 +1,9 @@
-use axum::{http::StatusCode, response::IntoResponse, serve::Serve, Router, routing::method_routing::*};
+use axum::{serve::Serve, Router, routing::method_routing::*};
 use tower_http::services::ServeDir;
 use std::error::Error;
+use crate::routes::*;
+
+pub mod routes;
 
 // This struct encapsulates our application-related logic.
 pub struct Application {
@@ -41,25 +44,4 @@ impl Application {
         self.server.await
     }
 
-}
-
-// 2.Route Handlers
-pub async fn signup() -> impl IntoResponse {
-    StatusCode::OK.into_response()
-}
-
-pub async fn login() -> impl IntoResponse {
-    StatusCode::OK.into_response()
-}
-
-pub async fn logout() -> impl IntoResponse {
-    StatusCode::OK.into_response()
-}
-
-pub async fn verify_2fa() -> impl IntoResponse {
-    StatusCode::OK.into_response()
-}
-
-pub async fn verify_token() -> impl IntoResponse {
-    StatusCode::OK.into_response()
 }
