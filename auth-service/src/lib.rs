@@ -3,6 +3,8 @@ use tower_http::services::ServeDir;
 use std::error::Error;
 use crate::routes::*;
 
+pub mod domain;
+pub mod services;
 pub mod routes;
 
 // This struct encapsulates our application-related logic.

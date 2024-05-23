@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::domain::User;
+use crate::domain::user::User;
 
 #[derive(Debug, PartialEq)]
 pub enum UserStoreError {
@@ -22,16 +22,16 @@ struct HashmapUserStore {
 impl HashmapUserStore {
     
     pub fn new() -> HashmapUserStore {
-        HashmapUserStore { users: hashmap::new() }
+        HashmapUserStore { users: HashMap::new() }
     }
-
-    pub fn add_user(&mut self, user: User) -> Result<(), UserStoreError> {
+   pub fn add_user(&mut self, user: User) -> Result<(), UserStoreError> {
         // Return `UserStoreError::UserAlreadyExists` if the user already exists,
         // otherwise insert the user into the hashmap and return `Ok(())`.
-        if self.users.contains_key(user.password) {
+        if self.users.contains_key(&user.email) {
             return Err(UserStoreError::UserAlreadyExists);
         } else {
-            self.users.insert(user.password, user);
+            self.users.insert(user.email.clone(), user);
+            return Ok(())
         }
         
     }
@@ -41,23 +41,23 @@ impl HashmapUserStore {
     // This function should return a `Result` type containing either a
     // `User` object or a `UserStoreError`.
     // Return `UserStoreError::UserNotFound` if the user can not be found.
-    pub fn get_user(self, email: &str) -> Result<User, UserStoreError> {
-        match selft.users.get(email) {
-            Some(user) => ok(user),
-            None => return Error(UserStoreError::UserNotFound)
+    pub fn get_user(&self, email: &str) -> Result<User, UserStoreError> {
+        match self.users.get(email) {
+            Some(user) => Ok(User::new(user.email.clone(), user.password.clone(), user.requires_2fa)),
+            None => return Err(UserStoreError::UserNotFound)
         }
     }
 
-    pub fn validate_user(self, email: &str, password: &str) -> Result<(), UserStoreError> {
-        match selft.users.get(email) {
+    pub fn validate_user(&self, email: &str, password: &str) -> Result<(), UserStoreError> {
+        match self.users.get(email) {
             Some(user) => {
-                if user.password == passworsd {
+                if user.password == password {
                     return Ok(())
                 } else {
                     return Err(UserStoreError::InvalidCredentials)
                 }
             },
-            None => return Error(UserStoreError::UserNotFound)
+            None => return Err(UserStoreError::UserNotFound)
         }
     }
 
@@ -70,12 +70,29 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    fn test_add_user() {
+    async fn test_add_user() {
+        
         // Given
-        let user = User::new("");
-        let user_store = HashmapUserStore::new();
+        let user1 = User::new(
+            String::from("johnwick@gmail.com"),
+            String::from("********"),
+            false
+        );
+        let user2 = User::new(
+            String::from("johnwick@gmail.com"),
+            String::from("********"),
+            false
+        );
+        
+        // When
+        let mut user_store: HashmapUserStore = HashmapUserStore::new();
+        let result1 = user_store.add_user(user1);
+        let result2 = user_store.add_user(user2);
 
-        todo!()
+        // Then
+        assert_eq!(result1.is_ok(), true);
+        assert_eq!(result2.is_err(), true);
+
     }
     /*
     #[tokio::test]
