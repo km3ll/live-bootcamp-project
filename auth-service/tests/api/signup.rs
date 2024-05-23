@@ -18,7 +18,7 @@ async fn signup_should_return_422_if_malformed_input() {
             "password": "****",
         }),
         serde_json::json!({
-            "email": "johnwick@example.com",
+            "email": random_email,
             "requires2FA": null,
         }),
         serde_json::json!({
@@ -38,4 +38,21 @@ async fn signup_should_return_422_if_malformed_input() {
         );
     }
 
+}
+
+#[tokio::test]
+async fn signup_should_return_201_if_valid_input() {
+
+    // Given
+    let app = TestApp::new().await;
+    let random_email = get_random_email();
+
+    let body: Value = serde_json::json!({
+        "username": "johnwick",
+        "password": random_email,
+        "requires2FA": true,
+    });
+
+    let response = app.post_signup(&body).await;
+    assert_eq!(response.status().as_u16(), 201);
 }
