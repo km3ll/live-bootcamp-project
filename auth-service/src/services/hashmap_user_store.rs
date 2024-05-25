@@ -14,16 +14,17 @@ pub enum UserStoreError {
 // which stores a `HashMap`` of email `String`s mapped to `User` objects.
 // Derive the `Default` trait for `HashmapUserStore`.
 #[derive(Default)]
-struct HashmapUserStore {
+pub struct HashmapUserStore {
     users: HashMap<String, User>,
 }
 
 
 impl HashmapUserStore {
     
-    pub fn new() -> HashmapUserStore {
+   pub fn new() -> HashmapUserStore {
         HashmapUserStore { users: HashMap::new() }
-    }
+   }
+
    pub fn add_user(&mut self, user: User) -> Result<(), UserStoreError> {
         // Return `UserStoreError::UserAlreadyExists` if the user already exists,
         // otherwise insert the user into the hashmap and return `Ok(())`.
@@ -42,10 +43,10 @@ impl HashmapUserStore {
     // `User` object or a `UserStoreError`.
     // Return `UserStoreError::UserNotFound` if the user can not be found.
     pub fn get_user(&self, email: &str) -> Result<User, UserStoreError> {
-        match self.users.get(email) {
-            Some(user) => Ok(User::new(user.email.clone(), user.password.clone(), user.requires_2fa)),
-            None => return Err(UserStoreError::UserNotFound)
-        }
+    match self.users.get(email) {
+        Some(user) => Ok(User::new(user.email.clone(), user.password.clone(), user.requires_2fa)),
+        None => return Err(UserStoreError::UserNotFound)
+    }
     }
 
     pub fn validate_user(&self, email: &str, password: &str) -> Result<(), UserStoreError> {
@@ -137,6 +138,5 @@ mod tests {
         let result2 = user_store.validate_user(email.as_str(), password.as_str());
         assert_eq!(result2.is_ok(), true)
     }
-
 
 }
