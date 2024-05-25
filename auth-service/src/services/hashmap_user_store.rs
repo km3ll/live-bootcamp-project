@@ -70,7 +70,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_add_user() {
+    async fn user_store_should_add_user_successfully() {
         
         // Given
         let user1 = User::new(
@@ -94,16 +94,49 @@ mod tests {
         assert_eq!(result2.is_err(), true);
 
     }
-    /*
+    
     #[tokio::test]
-    fn test_get_user() {
-        todo!()
+    async fn user_store_should_return_user_successfully() {
+
+        // Given
+        let email = String::from("johnwick@gmail.com");
+        let user = User::new(
+            email.clone(),
+            String::from("********"),
+            false
+        );
+        let mut user_store: HashmapUserStore = HashmapUserStore::new();
+        let result = user_store.add_user(user);
+
+        let result = user_store.get_user(email.as_str());
+        match result {
+            Ok(user) => {
+                assert_eq!(user.email, email);
+                assert_eq!(user.password, String::from("********"));
+                assert_eq!(user.requires_2fa, false);
+            },
+            Err(_) => {
+                assert_eq!(result.is_err(), true);
+            }
+        }
+        
     }
 
     #[tokio::test]
-    fn test_validate_user() {
-        todo!()
+    async fn test_validate_user() {
+        // Given
+        let email = String::from("johnwick@gmail.com");
+        let password = String::from("********");
+        let user = User::new(
+            email.clone(),
+            password.clone(),
+            false
+        );
+        let mut user_store: HashmapUserStore = HashmapUserStore::new();
+        let result1 = user_store.add_user(user);
+        let result2 = user_store.validate_user(email.as_str(), password.as_str());
+        assert_eq!(result2.is_ok(), true)
     }
-    */
+
 
 }
