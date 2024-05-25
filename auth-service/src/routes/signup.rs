@@ -16,8 +16,8 @@ pub struct SignupResponse {
 }
 
 pub async fn signup(State(state): State<AppState>, Json(request): Json<SignupRequest>) -> impl IntoResponse {
+
     // Create a new `User` instance using data in the `request`
-    println!("signup > start {:?}", request);
     let user = User::new(request.email, request.password, request.requires_2fa);
 
     let mut user_store = state.user_store.write().await;
