@@ -7,7 +7,7 @@ use auth_service::services::HashmapUserStore;
 #[tokio::main]
 async fn main() {
 
-    let mut hasmap_user_store = HashmapUserStore::new();
+    let hasmap_user_store = HashmapUserStore::new();
     let user_store: UserStoreType = Arc::new(RwLock::new(hasmap_user_store));
     let app_state = AppState::new(user_store);
 
