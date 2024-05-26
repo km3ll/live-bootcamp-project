@@ -6,6 +6,7 @@ cargo build
 cd ..
 cd auth-service
 cargo build
+cargo make all
 cd ..
 ```
 
