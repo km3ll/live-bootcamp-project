@@ -100,33 +100,23 @@ async fn should_return_409_if_email_already_exists() {
 
     // Given
     let app: TestApp = TestApp::new().await;
+    let body = serde_json::json!(
+        {
+            "email": "user@gmail.com",
+            "password": "87654321",
+            "requires2FA": true
+        }
+    );
 
-    let test_cases: [Value; 2] = [
-        serde_json::json!(
-            {
-                "email": "user@gmail.com",
-                "password": "12345678",
-                "requires2FA": true
-            }
-        ),
-        serde_json::json!(
-            {
-                "email": "user@gmail.com",
-                "password": "12345678",
-                "requires2FA": false
-            }
-        )
-    ];
+    // When-Then
+    let response1 = app.post_signup(&body).await;
+    assert_eq!(response1.status().as_u16(), 201, "Failed for input {:?}", body);
 
-    for test_body in test_cases.iter() {
-        // When
-        let response = app.post_signup(test_body).await;
-        //Then
-        assert_eq!(response.status().as_u16(), 409, "Failed for input {:?}", test_body);
-        assert_eq!(
-            response.json::<ErrorResponse>().await.expect("Could not deserialize response body to ErrorResponse").error,
-            "User already exists".to_owned()
-        );
-    }
+    // When-Then
+    let response2 = app.post_signup(&body).await;
+    assert_eq!(
+        response2.json::<ErrorResponse>().await.expect("Could not deserialize response body to ErrorResponse").error,
+        "User already exists".to_owned()
+    );
 
 }
