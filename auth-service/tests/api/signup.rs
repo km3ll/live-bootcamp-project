@@ -65,3 +65,39 @@ async fn should_return_201_if_valid_input() {
     );
 
 }
+
+
+#[tokio::test]
+async fn should_return_400_if_invalid_input() {
+
+    // Given
+    let app: TestApp = TestApp::new().await;
+    let body: Value = serde_json::json!({
+        "email": "not-an-email",
+        "password": "******",
+        "requires2FA": true
+    });
+    // When
+    let response = app.post_signup(&body).await;
+    // Then
+    assert_eq!(response.status().as_u16(), 400);
+
+}
+
+#[tokio::test]
+async fn should_return_409_if_email_already_exists() {
+
+    // Given
+    let app: TestApp = TestApp::new().await;
+    let body: Value = serde_json::json!({
+        "email": "johnwick@gmail.com",
+        "password": "******",
+        "requires2FA": true
+    });
+    let response1 = app.post_signup(&body).await;
+    // When
+    let response2 = app.post_signup(&body).await;
+    // Then
+    assert_eq!(response2.status().as_u16(), 409);
+
+}
