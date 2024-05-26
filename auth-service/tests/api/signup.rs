@@ -45,7 +45,7 @@ async fn should_return_201_if_valid_input() {
     let random_email: String = get_random_email();
     let body: Value = serde_json::json!({
         "email": random_email,
-        "password": "******",
+        "password": "********",
         "requires2FA": true
     });
     // When
@@ -73,14 +73,13 @@ async fn should_return_400_if_invalid_input() {
     // Given
     let app: TestApp = TestApp::new().await;
 
-    let test_cases: [Value; 1] = [
-        serde_json::json!(
-            {
-                "email": "not-an-email",
-                "password": "******",
-                "requires2FA": true
-            }
-        )
+    let test_cases: [Value; 3] = [
+        // empty email
+        serde_json::json!( { "email": "", "password": "********", "requires2FA": true } ),
+        // email without '@'
+        serde_json::json!( { "email": "not-an-email", "password": "********", "requires2FA": true } ),
+        // password.length less than 8 characters
+        serde_json::json!( { "email": "user@gmail.com", "password": "123", "requires2FA": false } )
     ];
 
     for test_body in test_cases.iter() {
@@ -106,14 +105,14 @@ async fn should_return_409_if_email_already_exists() {
         serde_json::json!(
             {
                 "email": "user@gmail.com",
-                "password": "01234",
+                "password": "12345678",
                 "requires2FA": true
             }
         ),
         serde_json::json!(
             {
                 "email": "user@gmail.com",
-                "password": "56789",
+                "password": "12345678",
                 "requires2FA": false
             }
         )
