@@ -1,11 +1,11 @@
-use validator::{HasLen, validate_email};
+use validator::HasLen;
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub struct Password(String);
 
 impl Password {
     pub fn parse(password: String) -> Result<Password, String> {
-        if password.length() >= 0 {
+        if password.length() >= 8 {
             Ok(Self(password))
         } else {
             Err(format!("{} is not a valid password.", password))

@@ -7,8 +7,6 @@ async fn should_return_422_if_malformed_input() {
     
     // Given
     let app: TestApp = TestApp::new().await;
-    let random_email: String = get_random_email();
-
     let test_cases: [Value; 2] = [
         serde_json::json!(
             {

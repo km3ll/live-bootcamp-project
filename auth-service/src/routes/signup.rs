@@ -1,10 +1,10 @@
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
+
 use crate::{
     app_state::AppState,
-    domain::{AuthAPIError, User}
+    domain::{AuthAPIError, Email, User, Password}
 };
-use crate::domain::UserStoreError;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct SignupRequest{
@@ -24,32 +24,26 @@ pub async fn signup(
     Json(request): Json<SignupRequest>
 ) -> Result<impl IntoResponse, AuthAPIError> {
 
-    let email = request.email;
-    let password = request.password;
-    let requires_2fa = request.requires_2fa;
-
-    if email.is_empty() || !email.contains("@") || password.len() < 8 {
-        return Err(AuthAPIError::InvalidCredentials)
-    }
+    // Validations
+    let email = Email::parse(request.email.clone())
+        .map_err(|_| AuthAPIError::InvalidCredentials)?;
+    let password = Password::parse(request.password.clone())
+        .map_err(|_| AuthAPIError::InvalidCredentials)?;
 
     let mut user_store = state.user_store.write().await;
-    let maybe_user: Result<User, UserStoreError> = user_store.get_user(&email).await;
-    if maybe_user.is_ok() {
-        return Err(AuthAPIError::UserAlreadyExists)
+    let user = User::new(email, password, request.requires_2fa);
+
+    if user_store.get_user(&user.email).await.is_ok() {
+        return Err(AuthAPIError::UserAlreadyExists);
     }
 
-    let user = User::new(email, password, requires_2fa);
-    let result = user_store.add_user(user).await;
-    match result {
-        Ok(()) => {
-            println!("User stored successfully");
-        },
-        Err(error) => {
-            return Err(AuthAPIError::UnexpectedError);
-        }
+    if user_store.add_user(user).await.is_err() {
+        return Err(AuthAPIError::UnexpectedError);
     }
 
-    let response = Json(SignupResponse { message: "User created successfully!".to_string() });
+    let response = Json(SignupResponse {
+        message: "User created successfully!".to_string()
+    });
     Ok((StatusCode::CREATED, response))
 
 }
