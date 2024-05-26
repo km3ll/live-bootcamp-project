@@ -22,7 +22,7 @@ pub mod services;
 // This struct encapsulates our application-related logic.
 pub struct Application {
     server: Serve<Router, Router>,
-    // address is exposed as a public field so we have access to it in tests.
+    // address is exposed as a public field, so we have access to it in tests.
     pub address: String,
 }
 
@@ -40,7 +40,7 @@ impl Application {
             .with_state(app_state);
         
 
-            let listener = tokio::net::TcpListener::bind(address).await?;
+        let listener = tokio::net::TcpListener::bind(address).await?;
         let address = listener.local_addr()?.to_string();
         let server: Serve<Router, Router> = axum::serve(listener, router);
 

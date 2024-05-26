@@ -4,7 +4,7 @@ use crate::{
     app_state::AppState,
     domain::{AuthAPIError, User}
 };
-use crate::services::UserStoreError;
+use crate::domain::UserStoreError;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct SignupRequest{
@@ -33,13 +33,13 @@ pub async fn signup(
     }
 
     let mut user_store = state.user_store.write().await;
-    let maybe_user: Result<User, UserStoreError> = user_store.get_user(&email);
+    let maybe_user: Result<User, UserStoreError> = user_store.get_user(&email).await;
     if maybe_user.is_ok() {
         return Err(AuthAPIError::UserAlreadyExists)
     }
 
     let user = User::new(email, password, requires_2fa);
-    let result = user_store.add_user(user);
+    let result = user_store.add_user(user).await;
     match result {
         Ok(()) => {
             println!("User stored successfully");
