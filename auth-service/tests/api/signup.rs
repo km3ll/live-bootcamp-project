@@ -1,6 +1,6 @@
 use crate::helpers::{get_random_email, TestApp};
 use serde_json::Value;
-use auth_service::routes::SignupResponse;
+use auth_service::{routes::SignupResponse, ErrorResponse};
 
 #[tokio::test]
 async fn should_return_422_if_malformed_input() {
@@ -72,15 +72,27 @@ async fn should_return_400_if_invalid_input() {
 
     // Given
     let app: TestApp = TestApp::new().await;
-    let body: Value = serde_json::json!({
-        "email": "not-an-email",
-        "password": "******",
-        "requires2FA": true
-    });
-    // When
-    let response = app.post_signup(&body).await;
-    // Then
-    assert_eq!(response.status().as_u16(), 400);
+
+    let test_cases: [Value; 1] = [
+        serde_json::json!(
+            {
+                "email": "not-an-email",
+                "password": "******",
+                "requires2FA": true
+            }
+        )
+    ];
+
+    for test_body in test_cases.iter() {
+        // When
+        let response = app.post_signup(test_body).await;
+        //Then
+        assert_eq!(response.status().as_u16(), 400, "Failed for input {:?}", test_body);
+        assert_eq!(
+            response.json::<ErrorResponse>().await.expect("Could not deserialize response body to ErrorResponse").error,
+            "Invalid credentials".to_owned()
+        );
+    }
 
 }
 
@@ -89,15 +101,33 @@ async fn should_return_409_if_email_already_exists() {
 
     // Given
     let app: TestApp = TestApp::new().await;
-    let body: Value = serde_json::json!({
-        "email": "johnwick@gmail.com",
-        "password": "******",
-        "requires2FA": true
-    });
-    let response1 = app.post_signup(&body).await;
-    // When
-    let response2 = app.post_signup(&body).await;
-    // Then
-    assert_eq!(response2.status().as_u16(), 409);
+
+    let test_cases: [Value; 2] = [
+        serde_json::json!(
+            {
+                "email": "user@gmail.com",
+                "password": "01234",
+                "requires2FA": true
+            }
+        ),
+        serde_json::json!(
+            {
+                "email": "user@gmail.com",
+                "password": "56789",
+                "requires2FA": false
+            }
+        )
+    ];
+
+    for test_body in test_cases.iter() {
+        // When
+        let response = app.post_signup(test_body).await;
+        //Then
+        assert_eq!(response.status().as_u16(), 409, "Failed for input {:?}", test_body);
+        assert_eq!(
+            response.json::<ErrorResponse>().await.expect("Could not deserialize response body to ErrorResponse").error,
+            "User already exists".to_owned()
+        );
+    }
 
 }
