@@ -28,7 +28,6 @@ pub async fn login(
         .map_err(|_| AuthAPIError::InvalidCredentials)?;
 
     let user_store = &state.user_store.read().await;
-
     if user_store.validate_user(&email, &password).await.is_err() {
         return Err(AuthAPIError::IncorrectCredentials);
     }
