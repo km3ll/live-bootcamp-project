@@ -1,13 +1,22 @@
 use std::sync::Arc;
-use auth_service::Application;
-use reqwest::Client;
+use reqwest::{cookie::Jar, Client};
 use tokio::sync::RwLock;
 use uuid::Uuid;
-use auth_service::app_state::{AppState, UserStoreType};
-use auth_service::services::HashmapUserStore;
+use auth_service::{
+    app_state::{AppState, UserStoreType},
+    services::{
+        HashmapUserStore,
+        HashsetBannedTokenStore
+    },
+    utils::constants::test::APP_ADDRESS,
+    Application,
+};
+use auth_service::utils::constants::test;
 
 pub struct TestApp {
     pub address: String,
+    pub cookie_jar: Arc<Jar>, // Atomic reference counter
+    pub banned_token_store: Arc<RwLock<HashsetBannedTokenStore>>,
     pub http_client: reqwest::Client,
 }
 
@@ -15,11 +24,12 @@ impl TestApp {
 
     pub async fn new() -> Self {
 
-        let hasmap_user_store = HashmapUserStore::new();
-        let user_store: UserStoreType = Arc::new(RwLock::new(hasmap_user_store));
-        let app_state = AppState::new(user_store);
+        let hashmap_user_store = HashmapUserStore::new();
+        let user_store: UserStoreType = Arc::new(RwLock::new(hashmap_user_store));
+        let banned_token_store = Arc::new(RwLock::new(HashsetBannedTokenStore::default()));
+        let app_state = AppState::new(user_store, banned_token_store.clone());
 
-        let app = Application::build(app_state, "127.0.0.1:0")
+        let app = Application::build(app_state, test::APP_ADDRESS)
             .await
             .expect("Failed to build app");
 
@@ -30,10 +40,19 @@ impl TestApp {
         #[allow(clippy::let_underscore_future)]
         let _ = tokio::spawn(app.run());
 
-        let http_client = Client::new(); // Create a Reqwest http client instance
+        let cookie_jar = Arc::new(Jar::default());
+        let http_client = reqwest::Client::builder()
+            .cookie_provider(cookie_jar.clone())
+            .build()
+            .unwrap();
 
         // Create new `TestApp` instance and return it
-        TestApp { address, http_client }
+        Self {
+            address,
+            cookie_jar,
+            banned_token_store,
+            http_client,
+        }
     
     }
 
