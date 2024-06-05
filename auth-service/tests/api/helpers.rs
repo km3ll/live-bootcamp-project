@@ -8,8 +8,10 @@ use auth_service::{
         HashmapUserStore,
         HashsetBannedTokenStore
     },
+    utils::constants::test::APP_ADDRESS,
     Application,
 };
+use auth_service::utils::constants::test;
 
 pub struct TestApp {
     pub address: String,
@@ -27,7 +29,7 @@ impl TestApp {
         let banned_token_store = Arc::new(RwLock::new(HashsetBannedTokenStore::default()));
         let app_state = AppState::new(user_store, banned_token_store.clone());
 
-        let app = Application::build(app_state, "127.0.0.1:0")
+        let app = Application::build(app_state, test::APP_ADDRESS)
             .await
             .expect("Failed to build app");
 
