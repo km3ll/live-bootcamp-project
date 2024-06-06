@@ -18,7 +18,7 @@ pub async fn logout(
     };
     // Validate token
     let token = cookie.value().to_owned();
-    let _ = match validate_token(&token).await {
+    let _ = match validate_token(&token, state.banned_token_store.clone()).await {
         Ok(claims) => claims,
         Err(_) => return (jar, Err(AuthAPIError::InvalidToken))
     };
