@@ -1,6 +1,10 @@
 use serde_json::Value;
 use crate::helpers::{get_random_email, TestApp};
-use auth_service::{utils::constants::JWT_COOKIE_NAME};
+use auth_service::{
+    routes::TwoFactorAuthResponse,
+    utils::constants::JWT_COOKIE_NAME
+};
+
 
 #[tokio::test]
 async fn should_return_422_if_malformed_credentials() {
@@ -151,7 +155,20 @@ async fn should_return_206_if_valid_credentials_and_2fa_enabled() {
 
     // Then
     let response = app.post_login(&login_body).await;
-    assert_eq!(response.status().as_u16(), 206);
+    assert_eq!(
+        response.status().as_u16(), 
+        206,
+        "The API did not return a 206 PARTIAL CONTENT"
+    );
+
+    assert_eq!(
+        response
+            .json::<TwoFactorAuthResponse>()
+            .await
+            .expect("Could not desearialize response body to TwoFactorAuthResponse")
+            .message,
+            "2FA required"
+    );
 
     /*
     let auth_cookie = response
