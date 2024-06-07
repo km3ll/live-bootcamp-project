@@ -40,12 +40,12 @@ pub trait TwoFACodeStore {
 
     async fn remove_code(
         &mut self,
-        email: Email
+        email: &Email
     ) -> Result<(), TwoFACodeStoreError>;
 
     async fn get_code(
         &self,
-        email: Email,
+        email: &Email,
     ) -> Result<(LoginAttemptId, TwoFACode), TwoFACodeStoreError>;
 
 }
