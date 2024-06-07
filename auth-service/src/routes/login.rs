@@ -18,9 +18,18 @@ pub struct LoginRequest{
     pub password: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct LoginResponse {
+#[derive(Debug, Serialize)]
+#[serde(untagged)]
+pub enum LoginResponse {
+    RegularAuth,
+    TwoFactorAuth(TwoFactorAuthResponse),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TwoFactorAuthResponse {
     pub message: String,
+    #[serde(rename = "loginAttemptId")]
+    pub login_attempt_id: String,
 }
 
 pub async fn login(
@@ -51,13 +60,36 @@ pub async fn login(
         Err(_) => return (cookie_jar, Err(AuthAPIError::IncorrectCredentials)),
     };
 
-    let auth_cookie = match generate_auth_cookie(&user.email) {
-        Ok(cookie) => cookie,
-        Err(_) => return(cookie_jar, Err(AuthAPIError::UnexpectedError)),
-    };
-
-    let updated_jar = cookie_jar.add(auth_cookie);
-
-    (updated_jar, Ok(StatusCode::OK.into_response()))
+    // handle request based on user's 2FA configuration
+    match user.requires_2fa {
+        true  => handle_2fa(cookie_jar).await,
+        false => handle_no_2fa(&user.email, cookie_jar).await,
+    }
 
 }
+
+async fn handle_2fa(jar: CookieJar) -> (CookieJar, Result<(StatusCode, Json<LoginResponse>), AuthAPIError>) {
+    
+    let auth_response = TwoFactorAuthResponse {
+        message: String::from("2FA required"),
+        login_attempt_id: String::from("123456"),
+    };
+    let response = Json(LoginResponse::TwoFactorAuth(auth_response));
+
+    (jar, Ok((StatusCode::PARTIAL_CONTENT, response)))
+    
+}
+
+async fn handle_no_2fa(email: &Email, jar: CookieJar) -> (CookieJar, Result<(StatusCode, Json<LoginResponse>), AuthAPIError>) {
+    
+    let auth_cookie = match generate_auth_cookie(&email) {
+        Ok(cookie) => cookie,
+        Err(_) => return(jar, Err(AuthAPIError::UnexpectedError)),
+    };
+
+    let updated_jar = jar.add(auth_cookie);
+
+    (updated_jar, Ok((StatusCode::OK, Json(LoginResponse::RegularAuth))))
+
+}
+

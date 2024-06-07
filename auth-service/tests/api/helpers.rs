@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use reqwest::{cookie::Jar, Client};
+use reqwest::cookie::Jar;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 use auth_service::{
@@ -8,7 +8,6 @@ use auth_service::{
         HashmapUserStore,
         HashsetBannedTokenStore
     },
-    utils::constants::test::APP_ADDRESS,
     Application,
 };
 use auth_service::utils::constants::test;
