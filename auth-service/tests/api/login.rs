@@ -1,8 +1,10 @@
 use serde_json::Value;
 use crate::helpers::{get_random_email, TestApp};
 use auth_service::{
+    domain::{Email, TwoFACodeStore},
     routes::TwoFactorAuthResponse,
-    utils::constants::JWT_COOKIE_NAME
+    utils::constants::JWT_COOKIE_NAME,
+    ErrorResponse,
 };
 
 
@@ -161,22 +163,20 @@ async fn should_return_206_if_valid_credentials_and_2fa_enabled() {
         "The API did not return a 206 PARTIAL CONTENT"
     );
 
-    assert_eq!(
-        response
-            .json::<TwoFactorAuthResponse>()
-            .await
-            .expect("Could not desearialize response body to TwoFactorAuthResponse")
-            .message,
-            "2FA required"
-    );
+    let json_body = response
+        .json::<TwoFactorAuthResponse>()
+        .await
+        .expect("Could not deserialize response body to TwoFactorAuthResponse");
 
-    /*
-    let auth_cookie = response
-        .cookies()
-        .find(|cookie| cookie.name() == JWT_COOKIE_NAME)
-        .expect("No auth cookie found");
+    assert_eq!(json_body.message, "2FA required".to_owned());
 
-    assert!(!auth_cookie.value().is_empty())
-    */
+    let two_fa_code_store = app.two_fa_code_store.read().await;
+
+    let code_tuple = two_fa_code_store
+        .get_code(&Email::parse(random_email).unwrap())
+        .await
+        .expect("Faile d to get 2FA code");
+
+    assert_eq!(code_tuple.0.as_ref(), json_body.login_attempt_id);
 
 }
