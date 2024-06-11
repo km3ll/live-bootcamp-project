@@ -3,7 +3,7 @@ use reqwest::cookie::Jar;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 use auth_service::{
-    app_state::{AppState, UserStoreType},
+    app_state::{AppState, BannedTokenStoreType, TwoFACodeStoreType, UserStoreType},
     services::{
         HashmapTwoFACodeStore,
         HashmapUserStore,
@@ -17,8 +17,8 @@ use auth_service::{
 pub struct TestApp {
     pub address: String,
     pub cookie_jar: Arc<Jar>, // Atomic reference counter
-    pub banned_token_store: Arc<RwLock<HashsetBannedTokenStore>>,
-    pub two_fa_code_store: Arc<RwLock<HashmapTwoFACodeStore>>,
+    pub banned_token_store: BannedTokenStoreType,
+    pub two_fa_code_store: TwoFACodeStoreType,
     pub http_client: reqwest::Client,
 }
 
