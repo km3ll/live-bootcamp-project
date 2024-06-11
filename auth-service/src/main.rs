@@ -1,19 +1,23 @@
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use auth_service::{
-    app_state::{AppState, UserStoreType},
-    services::{HashmapUserStore, HashsetBannedTokenStore},
-    utils::constants::prod,
-    Application
+    app_state::AppState, services::{HashmapTwoFACodeStore, HashmapUserStore, HashsetBannedTokenStore, MockEmailClient}, utils::constants::prod, Application
 };
 
 #[tokio::main]
 async fn main() {
 
-    let hashmap_user_store = HashmapUserStore::new();
-    let user_store: UserStoreType = Arc::new(RwLock::new(hashmap_user_store));
+    let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
     let banned_token_store = Arc::new(RwLock::new(HashsetBannedTokenStore::default()));
-    let app_state = AppState::new(user_store, banned_token_store);
+    let two_fa_code_store = Arc::new(RwLock::new(HashmapTwoFACodeStore::default()));
+    let email_client = Arc::new(MockEmailClient);
+
+    let app_state = AppState::new(
+        user_store,
+        banned_token_store,
+        two_fa_code_store,
+        email_client,
+    );
 
     // Here we are using ip 0.0.0.0 so the service is listening on all the configured network interfaces.
     // This is needed for Docker to work, which we will add later on.
