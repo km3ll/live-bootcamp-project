@@ -2,22 +2,17 @@ use std::sync::Arc;
 use sqlx::PgPool;
 use tokio::sync::RwLock;
 use auth_service::{
-    app_state::AppState,
-    utils::constants::DATABASE_URL,
-    get_postgres_pool,
-    services::data_stores::{HashmapTwoFACodeStore, HashmapUserStore, HashsetBannedTokenStore, MockEmailClient},
-    utils::constants::prod,
-    Application,
+    app_state::AppState, get_postgres_pool, services::data_stores::{HashmapTwoFACodeStore, HashsetBannedTokenStore, MockEmailClient, PostgresUserStore}, utils::constants::{prod, DATABASE_URL}, Application
 };
 
 #[tokio::main]
 async fn main() {
 
-    let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
+    let pg_pool = configure_postgresql().await;
+    let user_store = Arc::new(RwLock::new(PostgresUserStore::new(pg_pool)));
     let banned_token_store = Arc::new(RwLock::new(HashsetBannedTokenStore::default()));
     let two_fa_code_store = Arc::new(RwLock::new(HashmapTwoFACodeStore::default()));
     let email_client = Arc::new(MockEmailClient);
-    let pg_pool = configure_postgresql().await;
 
     let app_state = AppState::new(
         user_store,
