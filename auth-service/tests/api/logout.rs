@@ -11,7 +11,7 @@ use crate::helpers::{
 async fn should_return_400_if_jwt_cookie_missing() {
 
     // Given
-    let app = TestApp::new().await;
+    let mut app = TestApp::new().await;
 
     // When
     let response = app.post_logout().await;
@@ -38,11 +38,13 @@ async fn should_return_400_if_jwt_cookie_missing() {
         "Missing auth token".to_owned()
     );
 
+    app.clean_up().await;
+
 }
 
 #[tokio::test]
 async fn should_return_400_if_logout_called_twice_in_a_row() {
-    let app = TestApp::new().await;
+    let mut app = TestApp::new().await;
 
     let random_email = get_random_email();
 
@@ -93,13 +95,16 @@ async fn should_return_400_if_logout_called_twice_in_a_row() {
             .error,
         "Missing auth token".to_owned()
     );
+
+    app.clean_up().await;
+
 }
 
 #[tokio::test]
 async fn should_return_401_if_invalid_token() {
 
     // Given
-    let app = TestApp::new().await;
+    let mut app = TestApp::new().await;
     // Invalid cookie
     app.cookie_jar.add_cookie_str(
         &format!(
@@ -130,13 +135,15 @@ async fn should_return_401_if_invalid_token() {
         "Invalid auth token".to_owned()
     );
 
+    app.clean_up().await;
+
 }
 
 #[tokio::test]
 async fn should_return_200_if_valid_jwt_cookie() {
 
     // Given
-    let app = TestApp::new().await;
+    let mut app = TestApp::new().await;
     let random_email = get_random_email();
     let signup_body = serde_json::json!({
         "email": random_email,
@@ -177,6 +184,8 @@ async fn should_return_200_if_valid_jwt_cookie() {
         .expect("No auth cookie found");
 
     assert!(auth_cookie.value().is_empty());
+    
+    app.clean_up().await;
 
     let banned_token_store = app.banned_token_store.read().await;
     let contains_token = banned_token_store
@@ -184,5 +193,7 @@ async fn should_return_200_if_valid_jwt_cookie() {
         .await
         .expect("Failed to check if token is banned");
     assert!(contains_token);
+
+    
 
 }
