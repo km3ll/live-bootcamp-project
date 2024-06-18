@@ -5,7 +5,7 @@ use auth_service::{
     app_state::AppState,
     utils::constants::DATABASE_URL,
     get_postgres_pool,
-    services::{HashmapTwoFACodeStore, HashmapUserStore, HashsetBannedTokenStore, MockEmailClient},
+    services::data_stores::{HashmapTwoFACodeStore, HashmapUserStore, HashsetBannedTokenStore, MockEmailClient},
     utils::constants::prod,
     Application,
 };

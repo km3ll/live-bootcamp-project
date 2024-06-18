@@ -4,7 +4,7 @@ use tokio::sync::RwLock;
 use uuid::Uuid;
 use auth_service::{
     app_state::{AppState, BannedTokenStoreType, TwoFACodeStoreType, UserStoreType},
-    services::{
+    services::data_stores::{
         HashmapTwoFACodeStore,
         HashmapUserStore,
         HashsetBannedTokenStore,
