@@ -5,13 +5,11 @@ services:
     restart: "always"
     environment:
       AUTH_SERVICE_IP: ${AUTH_SERVICE_IP}
-      DATABASE_URL: "postgres:://postgres:${POSTGRES_PASSWORD}@db:5432"
     ports:
       - "8000:8000"
     depends_on:
       auth-service:
         condition: service_started
-      - db
   auth-service:
     image: km3ll/auth-service
     restart: "always"
