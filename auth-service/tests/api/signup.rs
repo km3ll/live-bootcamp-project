@@ -6,7 +6,7 @@ use auth_service::{routes::SignupResponse, ErrorResponse};
 async fn should_return_422_if_malformed_input() {
     
     // Given
-    let app: TestApp = TestApp::new().await;
+    let mut app: TestApp = TestApp::new().await;
     let test_cases: [Value; 2] = [
         serde_json::json!(
             {
@@ -33,13 +33,15 @@ async fn should_return_422_if_malformed_input() {
         );
     }
 
+    app.clean_up().await;
+
 }
 
 #[tokio::test]
 async fn should_return_201_if_valid_input() {
 
     // Given
-    let app: TestApp = TestApp::new().await;
+    let mut app: TestApp = TestApp::new().await;
     let random_email: String = get_random_email();
     let body: Value = serde_json::json!({
         "email": random_email,
@@ -62,6 +64,8 @@ async fn should_return_201_if_valid_input() {
         expected_response
     );
 
+    app.clean_up().await;
+
 }
 
 
@@ -69,7 +73,7 @@ async fn should_return_201_if_valid_input() {
 async fn should_return_400_if_invalid_input() {
 
     // Given
-    let app: TestApp = TestApp::new().await;
+    let mut app: TestApp = TestApp::new().await;
 
     let test_cases: [Value; 3] = [
         // empty email
@@ -91,13 +95,15 @@ async fn should_return_400_if_invalid_input() {
         );
     }
 
+    app.clean_up().await;
+
 }
 
 #[tokio::test]
 async fn should_return_409_if_email_already_exists() {
 
     // Given
-    let app: TestApp = TestApp::new().await;
+    let mut app: TestApp = TestApp::new().await;
     let body = serde_json::json!(
         {
             "email": "user@gmail.com",
@@ -116,5 +122,7 @@ async fn should_return_409_if_email_already_exists() {
         response2.json::<ErrorResponse>().await.expect("Could not deserialize response body to ErrorResponse").error,
         "User already exists".to_owned()
     );
+
+    app.clean_up().await;
 
 }
