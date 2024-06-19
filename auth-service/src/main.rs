@@ -4,13 +4,15 @@ use tokio::sync::RwLock;
 use auth_service::{
     app_state::AppState,
     get_postgres_pool, get_redis_client,
-    services::data_stores::{RedisTwoFACodeStore, RedisBannedTokenStore, MockEmailClient, PostgresUserStore},
-    utils::constants::{prod, DATABASE_URL, REDIS_HOST_NAME},
+    services::data_stores::{MockEmailClient, PostgresUserStore, RedisBannedTokenStore, RedisTwoFACodeStore},
+    utils::{constants::{prod, DATABASE_URL, REDIS_HOST_NAME}, tracing::init_tracing},
     Application
 };
 
 #[tokio::main]
 async fn main() {
+
+    init_tracing();
 
     let pg_pool = configure_postgresql().await;
     let user_store = Arc::new(RwLock::new(PostgresUserStore::new(pg_pool)));
