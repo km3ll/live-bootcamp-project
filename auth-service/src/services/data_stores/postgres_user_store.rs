@@ -24,6 +24,8 @@ impl PostgresUserStore {
 
 #[async_trait::async_trait]
 impl UserStore for PostgresUserStore {
+    
+    #[tracing::instrument(name = "Adding user to PostgreSQL", skip_all)]
     async fn add_user(&mut self, user: User) -> Result<(), UserStoreError> {
         let password_hash = compute_password_hash(user.password.as_ref().to_owned())
             .await
@@ -45,6 +47,7 @@ impl UserStore for PostgresUserStore {
         Ok(())
     }
 
+    #[tracing::instrument(name = "Retrieving user from PostgreSQL", skip_all)]
     async fn get_user(&self, email: &Email) -> Result<User, UserStoreError> {
         sqlx::query!(
             r#"
@@ -68,6 +71,7 @@ impl UserStore for PostgresUserStore {
         .ok_or(UserStoreError::UserNotFound)?
     }
 
+    #[tracing::instrument(name = "Validating user credentials in PostgreSQL", skip_all)]
     async fn validate_user(
         &self,
         email: &Email,
@@ -82,22 +86,32 @@ impl UserStore for PostgresUserStore {
         .await
         .map_err(|_| UserStoreError::InvalidCredentials)
     }
+
 }
 
 // Helper function to verify if a given password matches an expected hash
 // TODO: Hashing is a CPU-intensive operation. To avoid blocking
 // other async tasks, update this function to perform hashing on a
 // separate thread pool using tokio::task::spawn_blocking
+#[tracing::instrument(name = "Verify password hash", skip_all)]
 async fn verify_password_hash(
     expected_password_hash: String,
     password_candidate: String,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
-    let result = tokio::task::spawn_blocking(move || {
-        let expected_password_hash: PasswordHash<'_> = PasswordHash::new(&expected_password_hash)?;
+    
+    // This line retrieves the current span from the tracing context. 
+    // The span represents the execution context for the compute_password_hash function.
+    let current_span: tracing::Span = tracing::Span::current(); 
 
-        Argon2::default()
-            .verify_password(password_candidate.as_bytes(), &expected_password_hash)
-            .map_err(|e| e.into())
+    let result = tokio::task::spawn_blocking(move || {
+        // This code block ensures that the operations within the closure are executed within the context of the current span. 
+        // This is especially useful for tracing operations that are performed in a different thread or task, such as within tokio::task::spawn_blocking.
+        current_span.in_scope(||{
+            let expected_password_hash: PasswordHash<'_> = PasswordHash::new(&expected_password_hash)?;
+            Argon2::default()
+                .verify_password(password_candidate.as_bytes(), &expected_password_hash)
+                .map_err(|e| e.into())
+        })
     })
     .await;
 
@@ -108,18 +122,28 @@ async fn verify_password_hash(
 // TODO: Hashing is a CPU-intensive operation. To avoid blocking
 // other async tasks, update this function to perform hashing on a
 // separate thread pool using tokio::task::spawn_blocking
+#[tracing::instrument(name = "Computing password hash", skip_all)]
 async fn compute_password_hash(password: String) -> Result<String, Box<dyn Error + Send + Sync>> {
-    let result = tokio::task::spawn_blocking(move || {
-        let salt: SaltString = SaltString::generate(&mut rand::thread_rng());
-        let password_hash = Argon2::new(
-            Algorithm::Argon2id,
-            Version::V0x13,
-            Params::new(15000, 2, 1, None)?,
-        )
-        .hash_password(password.as_bytes(), &salt)?
-        .to_string();
 
-        Ok(password_hash)
+    // This line retrieves the current span from the tracing context. 
+    // The span represents the execution context for the compute_password_hash function.
+    let current_span: tracing::Span = tracing::Span::current();
+
+    let result = tokio::task::spawn_blocking(move || {
+        
+// This code block ensures that the operations within the closure are executed within the context of the current span. 
+        // This is especially useful for tracing operations that are performed in a different thread or task, such as within tokio::task::spawn_blocking.
+        current_span.in_scope(|| {
+            let salt: SaltString = SaltString::generate(&mut rand::thread_rng());
+            let password_hash = Argon2::new(
+                Algorithm::Argon2id,
+                Version::V0x13,
+                Params::new(15000, 2, 1, None)?,
+            )
+            .hash_password(password.as_bytes(), &salt)?
+            .to_string();
+            Ok(password_hash)
+        })
     })
     .await;
 
