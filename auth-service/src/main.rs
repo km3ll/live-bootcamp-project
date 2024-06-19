@@ -4,7 +4,12 @@ use tokio::sync::RwLock;
 use auth_service::{
     app_state::AppState,
     get_postgres_pool, get_redis_client,
-    services::data_stores::{MockEmailClient, PostgresUserStore, RedisBannedTokenStore, RedisTwoFACodeStore},
+    services::data_stores::{
+        MockEmailClient,
+        PostgresUserStore,
+        RedisBannedTokenStore,
+        RedisTwoFACodeStore
+    },
     utils::{constants::{prod, DATABASE_URL, REDIS_HOST_NAME}, tracing::init_tracing},
     Application
 };
@@ -12,6 +17,7 @@ use auth_service::{
 #[tokio::main]
 async fn main() {
 
+    color_eyre::install().expect("Failed to install color_eyre");
     init_tracing();
 
     let pg_pool = configure_postgresql().await;

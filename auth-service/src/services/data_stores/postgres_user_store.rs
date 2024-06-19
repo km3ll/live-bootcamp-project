@@ -1,3 +1,4 @@
+use color_eyre::eyre::{eyre, Context, Result};
 use std::error::Error;
 
 use argon2::{
@@ -97,7 +98,7 @@ impl UserStore for PostgresUserStore {
 async fn verify_password_hash(
     expected_password_hash: String,
     password_candidate: String,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+) -> Result<()> {
     
     // This line retrieves the current span from the tracing context. 
     // The span represents the execution context for the compute_password_hash function.
@@ -123,7 +124,7 @@ async fn verify_password_hash(
 // other async tasks, update this function to perform hashing on a
 // separate thread pool using tokio::task::spawn_blocking
 #[tracing::instrument(name = "Computing password hash", skip_all)]
-async fn compute_password_hash(password: String) -> Result<String, Box<dyn Error + Send + Sync>> {
+async fn compute_password_hash(password: String) -> Result<String> {
 
     // This line retrieves the current span from the tracing context. 
     // The span represents the execution context for the compute_password_hash function.
@@ -142,7 +143,9 @@ async fn compute_password_hash(password: String) -> Result<String, Box<dyn Error
             )
             .hash_password(password.as_bytes(), &salt)?
             .to_string();
-            Ok(password_hash)
+
+            //Ok(password_hash)
+            Err(eyre!("oh no!"))
         })
     })
     .await;
