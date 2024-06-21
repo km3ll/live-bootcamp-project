@@ -1,5 +1,4 @@
 use color_eyre::eyre::{eyre, Context, Result};
-use std::error::Error;
 
 use argon2::{
     password_hash::SaltString, Algorithm, Argon2, Params, PasswordHash, PasswordHasher,
@@ -30,7 +29,7 @@ impl UserStore for PostgresUserStore {
     async fn add_user(&mut self, user: User) -> Result<(), UserStoreError> {
         let password_hash = compute_password_hash(user.password.as_ref().to_owned())
             .await
-            .map_err(|_| UserStoreError::UnexpectedError)?;
+            .map_err(UserStoreError::UnexpectedError)?;
 
         sqlx::query!(
             r#"
@@ -43,7 +42,7 @@ impl UserStore for PostgresUserStore {
         )
         .execute(&self.pool)
         .await
-        .map_err(|_| UserStoreError::UnexpectedError)?;
+        .map_err(|e| UserStoreError::UnexpectedError(e.into()))?;
 
         Ok(())
     }
@@ -63,9 +62,10 @@ impl UserStore for PostgresUserStore {
         .map_err(|_| UserStoreError::UnexpectedError)?
         .map(|row| {
             Ok(User {
-                email: Email::parse(row.email).map_err(|_| UserStoreError::UnexpectedError)?,
+                email: Email::parse(row.email)
+                    .map_err(|e| UserStoreError::UnexpectedError(eyre!(e)))?,
                 password: Password::parse(row.password_hash)
-                    .map_err(|_| UserStoreError::UnexpectedError)?,
+                    .map_err(|e| UserStoreError::UnexpectedError(eyre!(e)))?,
                 requires_2fa: row.requires_2fa,
             })
         })
