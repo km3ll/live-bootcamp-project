@@ -24,15 +24,14 @@ pub async fn logout(
     };
 
     // Banned list
-    if state
+    if let Err(e) = state
         .banned_token_store
         .write()
         .await
         .add_token(token.to_owned())
         .await
-        .is_err()
     {
-        return (jar, Err(AuthAPIError::UnexpectedError));
+        return (jar, Err(AuthAPIError::UnexpectedError(e.into())));
     }
 
     let removed_jar = jar.remove(cookie::Cookie::from(JWT_COOKIE_NAME));

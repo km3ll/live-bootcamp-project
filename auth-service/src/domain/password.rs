@@ -1,6 +1,5 @@
 use color_eyre::eyre::{eyre, Result};
 use secrecy::{ExposeSecret, Secret};
-use validator::HasLen;
 
 #[derive(Debug, Clone)]
 pub struct Password(Secret<String>);

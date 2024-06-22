@@ -1,22 +1,21 @@
-use std::sync::Arc;
 use reqwest::Client;
+use secrecy::Secret;
+use std::sync::Arc;
 use sqlx::PgPool;
 use tokio::sync::RwLock;
 use auth_service::{
     app_state::AppState,
+    domain::Email,
     get_postgres_pool, get_redis_client,
     services::data_stores::{
-        MockEmailClient,
         PostgresUserStore,
         RedisBannedTokenStore,
         RedisTwoFACodeStore
     },
-    utils::{constants::{prod, DATABASE_URL, REDIS_HOST_NAME}, tracing::init_tracing},
+    services::postmark_email_client::PostmarkEmailClient,
+    utils::{constants::{prod, DATABASE_URL, POSTMARK_AUTH_TOKEN, REDIS_HOST_NAME}, tracing::init_tracing},
     Application
 };
-use auth_service::domain::Email;
-use auth_service::services::postmark_email_client::PostmarkEmailClient;
-use auth_service::utils::constants::POSTMARK_AUTH_TOKEN;
 
 #[tokio::main]
 async fn main() {
@@ -76,7 +75,7 @@ fn configure_postmark_email_client() -> PostmarkEmailClient{
 
     PostmarkEmailClient::new(
         prod::email_client::BASE_URL.to_owned(),
-        Email::parse(prod::email_client::SENDER.to_owned()).unwrap(),
+        Email::parse(Secret::new(prod::email_client::SENDER.to_owned())).unwrap(),
         POSTMARK_AUTH_TOKEN.to_owned(),
         http_client,
     )

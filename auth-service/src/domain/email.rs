@@ -12,6 +12,12 @@ impl PartialEq for Email {
     }
 }
 
+impl Hash for Email {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.0.expose_secret().hash(state);
+    }
+}
+
 impl Eq for Email {}
 
 impl Email {
