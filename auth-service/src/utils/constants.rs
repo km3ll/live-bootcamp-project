@@ -64,13 +64,10 @@ pub mod prod {
 
 pub mod test {
     pub const APP_ADDRESS: &str = "127.0.0.1:0";
-    pub mod test {
-        pub const APP_ADDRESS: &str = "127.0.0.1:0";
-        pub mod email_client {
-            use std::time::Duration;
+    pub mod email_client {
+        use std::time::Duration;
 
-            pub const SENDER: &str = "test@email.com";
-            pub const TIMEOUT: Duration = std::time::Duration::from_millis(200);
-        }
+        pub const SENDER: &str = "test@email.com";
+        pub const TIMEOUT: Duration = std::time::Duration::from_millis(200);
     }
 }

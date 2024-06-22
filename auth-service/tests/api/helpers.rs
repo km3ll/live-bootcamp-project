@@ -16,7 +16,6 @@ use auth_service::{
     services::data_stores::{
         RedisTwoFACodeStore,
         RedisBannedTokenStore,
-        MockEmailClient,
         PostgresUserStore,
     },
     utils::constants::{test, DATABASE_URL, DEFAULT_REDIS_HOSTNAME},
