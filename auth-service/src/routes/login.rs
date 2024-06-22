@@ -4,6 +4,7 @@ use axum::{
     response::IntoResponse
 };
 use axum_extra::extract::CookieJar;
+use secrecy::Secret;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -12,10 +13,10 @@ use crate::{
     utils::auth::generate_auth_cookie,
 };
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize)]
 pub struct LoginRequest{
     pub email: String,
-    pub password: String,
+    pub password: Secret<String>,
 }
 
 #[derive(Debug, Serialize)]

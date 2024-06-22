@@ -1,22 +1,31 @@
+use color_eyre::eyre::{eyre, Result};
+use secrecy::{ExposeSecret, Secret};
+use std::hash::Hash;
 use validator::validate_email;
 
-#[derive(Debug, Clone, PartialEq, Hash, Eq)]
-pub struct Email(String);
+#[derive(Debug, Clone)]
+pub struct Email(Secret<String>);
+
+impl PartialEq for Email {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.expose_secret() == other.0.expose_secret()
+    }
+}
+
+impl Eq for Email {}
 
 impl Email {
-    pub fn parse(email: String) -> Result<Email, String> {
-        if email.is_empty() {
-            Err("Email must not be empty".to_owned())
-        } else if validate_email(&email) {
-            Ok(Self(email))
+    pub fn parse(s: Secret<String>) -> Result<Email> {
+        if validate_email(s.expose_secret()) {
+            Ok(Self(s))
         } else {
-            Err(format!("{} is not a valid email.", email))
+            Err(eyre!(format!("{} is not a valid email.", s.expose_secret())))
         }
     }
 }
 
-impl AsRef<str> for Email {
-    fn as_ref(&self) -> &str {
+impl AsRef<Secret<String>> for Email {
+    fn as_ref(&self) -> &Secret<String> {
         &self.0
     }
 }
@@ -30,22 +39,23 @@ mod tests {
         Fake
     };
     use quickcheck::Gen;
+    use secrecy::Secret;
 
     #[test]
     fn should_reject_empty_email() {
-        let email = "".to_string();
+        let email = Secret::new("".to_string());
         assert!(Email::parse(email).is_err());
     }
 
     #[test]
     fn should_reject_email_without_at_character() {
-        let email = "usergmail.com".to_string();
+        let email = Secret::new("usergmail.com".to_string());
         assert!(Email::parse(email).is_err());
     }
 
     #[test]
     fn should_reject_email_without_user() {
-        let email = "@protonmail.com".to_string();
+        let email = Secret::new("@protonmail.com".to_string());
         assert!(Email::parse(email).is_err());
     }
 
@@ -62,7 +72,7 @@ mod tests {
 
     #[quickcheck_macros::quickcheck]
     fn valid_emails_are_parsed(valid_email: ValidEmailFixture) -> bool {
-        Email::parse(valid_email.0).is_ok()
+        Email::parse(Secret::new(valid_email.0)).is_ok()
     }
 
 }
