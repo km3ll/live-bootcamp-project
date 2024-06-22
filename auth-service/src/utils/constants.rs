@@ -1,5 +1,6 @@
 use::dotenvy::dotenv;
 use lazy_static::lazy_static;
+use secrecy::Secret;
 use std::env as std_env;
 
 pub const JWT_COOKIE_NAME: &str = "jwt";
@@ -51,8 +52,25 @@ pub mod env {
 
 pub mod prod {
     pub const APP_ADDRESS: &str = "0.0.0.0:3000";
+    pub mod email_client {
+        use std::time::Duration;
+
+        pub const BASE_URL: &str = "https://api.postmarkapp.com/email";
+        // If you created your own Postmark account, make sure to use your email address!
+        pub const SENDER: &str = "bogdan@codeiron.io";
+        pub const TIMEOUT: Duration = std::time::Duration::from_secs(10);
+    }
 }
 
 pub mod test {
     pub const APP_ADDRESS: &str = "127.0.0.1:0";
+    pub mod test {
+        pub const APP_ADDRESS: &str = "127.0.0.1:0";
+        pub mod email_client {
+            use std::time::Duration;
+
+            pub const SENDER: &str = "test@email.com";
+            pub const TIMEOUT: Duration = std::time::Duration::from_millis(200);
+        }
+    }
 }
