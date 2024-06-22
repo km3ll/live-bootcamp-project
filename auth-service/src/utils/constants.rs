@@ -8,7 +8,8 @@ pub const DEFAULT_REDIS_HOSTNAME: &str = "127.0.0.1";
 lazy_static! {
     pub static ref JWT_SECRET: String = set_token();
     pub static ref DATABASE_URL: String = set_database_url();
-    pub static ref REDIS_HOST_NAME: String = set_redis_host(); 
+    pub static ref REDIS_HOST_NAME: String = set_redis_host();
+    pub static ref POSTMARK_AUTH_TOKEN: Secret<String> = set_postmark_auth_token();
 }
 
 fn set_token() -> String {
@@ -34,9 +35,17 @@ fn set_redis_host() -> String {
     std_env::var(env::REDIS_HOST_NAME_ENV_VAR).unwrap_or(DEFAULT_REDIS_HOSTNAME.to_owned())
 }
 
+fn set_postmark_auth_token() -> Secret<String> {
+    dotenv().ok();
+    Secret::new(
+        std_env::var(env::POSTMARK_AUTH_TOKEN_ENV_VAR).expect("POSTMARK_AUTH_TOKEN must be set.")
+    )
+}
+
 pub mod env {
-    pub const JWT_SECRET_ENV_VAR: &str = "JWT_SECRET";
     pub const DATABASE_URL_ENV_VAR: &str = "DATABASE_URL";
+    pub const JWT_SECRET_ENV_VAR: &str = "JWT_SECRET";
+    pub const POSTMARK_AUTH_TOKEN_ENV_VAR: &str = "POSTMARK_AUTH_TOKEN";
     pub const REDIS_HOST_NAME_ENV_VAR: &str = "REDIS_HOST_NAME";
 }
 
