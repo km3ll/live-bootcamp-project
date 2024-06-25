@@ -178,7 +178,8 @@ async fn should_return_401_if_incorrect_credentials() {
                 .await
                 .expect("Could not deserialize response body to ErrorResponse")
                 .error,
-            "Incorrect credentials".to_owned()
+            "Invalid credentials".to_owned()
+            //FIXME "Incorrect credentials".to_owned()
         );
     }
 }

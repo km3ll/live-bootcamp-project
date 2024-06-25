@@ -33,6 +33,7 @@ pub struct TwoFactorAuthResponse {
     pub login_attempt_id: String,
 }
 
+#[tracing::instrument(name = "Login", skip_all)]
 pub async fn login(
     State(state): State<AppState>,
     cookie_jar: CookieJar,
@@ -40,13 +41,13 @@ pub async fn login(
 ) -> (CookieJar, Result<impl IntoResponse, AuthAPIError>) {
 
     // Validations
-    let email = match Email::parse(request.email) {
-        Ok(email) => email,
+    let password = match Password::parse(request.password) {
+        Ok(password) => password,
         Err(_) => return (cookie_jar, Err(AuthAPIError::InvalidCredentials)),
     };
 
-    let password = match Password::parse(request.password) {
-        Ok(password) => password,
+    let email = match Email::parse(request.email) {
+        Ok(email) => email,
         Err(_) => return (cookie_jar, Err(AuthAPIError::InvalidCredentials)),
     };
 
@@ -69,6 +70,7 @@ pub async fn login(
 
 }
 
+#[tracing::instrument(name = "Handle 2FA flow", skip_all)]
 async fn handle_2fa(
     email: &Email,
     state: &AppState,
@@ -107,6 +109,7 @@ async fn handle_2fa(
     
 }
 
+#[tracing::instrument(name = "Handle non-2FA flow", skip_all)]
 async fn handle_no_2fa(email: &Email, jar: CookieJar) -> (CookieJar, Result<(StatusCode, Json<LoginResponse>), AuthAPIError>) {
     
     let auth_cookie = match generate_auth_cookie(&email) {
@@ -119,4 +122,3 @@ async fn handle_no_2fa(email: &Email, jar: CookieJar) -> (CookieJar, Result<(Sta
     (updated_jar, Ok((StatusCode::OK, Json(LoginResponse::RegularAuth))))
 
 }
-
