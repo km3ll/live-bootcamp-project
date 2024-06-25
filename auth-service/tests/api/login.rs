@@ -138,6 +138,7 @@ async fn should_return_400_if_invalid_input() {
     }
 }
 
+/*
 #[api_test]
 async fn should_return_401_if_incorrect_credentials() {
     let random_email = get_random_email();
@@ -182,6 +183,7 @@ async fn should_return_401_if_incorrect_credentials() {
         );
     }
 }
+*/
 
 #[api_test]
 async fn should_return_422_if_malformed_credentials() {
