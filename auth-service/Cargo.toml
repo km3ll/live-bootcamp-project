@@ -23,7 +23,7 @@ secrecy = { version = "0.8.0", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"]}
 serde_json = { version = "1.0" }
 sqlx = { version = "0.6", features = [ "runtime-tokio-rustls", "postgres", "offline", "migrate" ] }
-test_helpers = { git = "https://github.com/km3ll/live-bootcamp-project/test-helpers.git" }
+test_helpers = { git = "https://github.com/letsgetrusty/test-helpers.git" }
 thiserror = { version = "1.0.58"}
 tokio = { version = "1.36", features = ["full"] }
 tower-http = { version = "0.5.0", features = ["fs", "cors", "trace"] }
