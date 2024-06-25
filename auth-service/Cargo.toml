@@ -11,19 +11,25 @@ async-trait = { version = "0.1.78" }
 axum = { version = "0.7.4" }
 axum-extra = { version = "0.9.2", features = ["cookie"] }
 chrono = { version = "0.4.35" }
+color-eyre = { version = "0.6.3" }
 dotenvy = { version = "0.15.7" }
 jsonwebtoken = { version = "9.2.0" }
 lazy_static = { version = "1.4.0"}
 log = { version = "0.4.21" }
 rand = { version = "0.8.5" }
 redis = { version = "0.25.2", features = ["tokio-comp"] }
+reqwest = { version = "0.11.26", default-features = false, features = ["json", "rustls-tls", "cookies"] }
+secrecy = { version = "0.8.0", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"]}
 serde_json = { version = "1.0" }
 sqlx = { version = "0.6", features = [ "runtime-tokio-rustls", "postgres", "offline", "migrate" ] }
+test_helpers = { git = "https://github.com/km3ll/live-bootcamp-project/test-helpers.git" }
+thiserror = { version = "1.0.58"}
 tokio = { version = "1.36", features = ["full"] }
 tower-http = { version = "0.5.0", features = ["fs", "cors", "trace"] }
 tracing = { version = "0.1.40" }
-tracing-subscriber = { version = "0.3.18" }
+tracing-error = { version = "0.2.0" }
+tracing-subscriber = { version = "0.3.18", features = ["registry", "env-filter"] }
 uuid = { version = "1.7.0", features = ["v4", "serde"] }
 validator = { version = "0.16.1" }
 
@@ -32,3 +38,4 @@ fake = { version = "=2.3.0" }
 quickcheck = { version = "0.9.2" }
 quickcheck_macros = { version = "0.9.1" }
 reqwest = { version = "0.11.26", default-features = false, features = ["json", "cookies"]}
+wiremock = "0.6.0"
