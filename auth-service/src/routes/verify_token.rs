@@ -3,6 +3,7 @@ use axum::{
     http::StatusCode,
     Json
 };
+use secrecy::Secret;
 use serde::Deserialize;
 use crate::{
     app_state::AppState,
@@ -22,5 +23,5 @@ pub async fn verify_token(
 
 #[derive(Debug, Deserialize)]
 pub struct VerifyTokenRequest {
-    token: String,
+    token: Secret<String>,
 }

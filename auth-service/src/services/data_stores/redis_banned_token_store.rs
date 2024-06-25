@@ -3,6 +3,7 @@ use color_eyre::eyre::{
 };
 use redis::{Commands, Connection};
 use std::sync::Arc;
+use secrecy::{ExposeSecret, Secret};
 use tokio::sync::RwLock;
 
 use crate::{
@@ -22,7 +23,7 @@ impl RedisBannedTokenStore {
 
 #[async_trait::async_trait]
 impl BannedTokenStore for RedisBannedTokenStore {
-    async fn add_token(&mut self, token: String) -> Result<(), BannedTokenStoreError> {
+    async fn add_token(&mut self, token: Secret<String>) -> Result<(), BannedTokenStoreError> {
 
         // TODO:
         // 1. Create a new key using the get_key helper function.
@@ -32,7 +33,7 @@ impl BannedTokenStore for RedisBannedTokenStore {
         // NOTE: The TTL is expected to be a u64 so you will have to cast TOKEN_TTL_SECONDS to a u64. 
         // Return BannedTokenStoreError::UnexpectedError if casting fails or the call to set_ex fails.
 
-        let token_key = get_key(token.as_str());
+        let token_key = get_key(token.expose_secret());
 
         let value = true;
 
@@ -52,9 +53,9 @@ impl BannedTokenStore for RedisBannedTokenStore {
         Ok(())
     }
 
-    async fn contains_token(&self, token: &str) -> Result<bool, BannedTokenStoreError> {
+    async fn contains_token(&self, token: &Secret<String>) -> Result<bool, BannedTokenStoreError> {
         // Check if the token exists by calling the exists method on the Redis connection
-        let token_key = get_key(token);
+        let token_key = get_key(token.expose_secret());
 
         let is_banned: bool = self
             .conn

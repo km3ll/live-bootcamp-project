@@ -1,4 +1,3 @@
-use secrecy::Secret;
 use std::collections::HashMap;
 
 use crate::domain::{
@@ -48,6 +47,7 @@ impl TwoFACodeStore for HashmapTwoFACodeStore {
 
 #[cfg(test)]
 mod tests {
+    use secrecy::Secret;
     use super::*;
     #[tokio::test]
     async fn test_add_code() {

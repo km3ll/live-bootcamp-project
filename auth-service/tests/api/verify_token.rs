@@ -3,12 +3,10 @@ use auth_service::{
     ErrorResponse
 };
 use crate::helpers::{get_random_email, TestApp};
+use test_helpers::api_test;
 
-#[tokio::test]
+#[api_test]
 async fn should_return_200_valid_token() {
-    
-    let mut app = TestApp::new().await;
-
     let random_email = get_random_email();
 
     let signup_body = serde_json::json!({
@@ -46,16 +44,10 @@ async fn should_return_200_valid_token() {
     let response = app.post_verify_token(&verify_token_body).await;
 
     assert_eq!(response.status().as_u16(), 200);
-
-    app.clean_up().await;
-
 }
 
-#[tokio::test]
+#[api_test]
 async fn should_return_401_if_invalid_token() {
-
-    let mut app = TestApp::new().await;
-
     let test_cases = vec!["", "invalid_token"];
 
     for test_case in test_cases {
@@ -76,16 +68,10 @@ async fn should_return_401_if_invalid_token() {
             "Invalid auth token".to_owned()
         );
     }
-
-    app.clean_up().await;
-
 }
 
-#[tokio::test]
+#[api_test]
 async fn should_return_401_if_banned_token() {
-
-    let mut app = TestApp::new().await;
-
     let random_email = get_random_email();
 
     let signup_body = serde_json::json!({
@@ -120,6 +106,8 @@ async fn should_return_401_if_banned_token() {
 
     assert_eq!(response.status().as_u16(), 200);
 
+    // ---------------------------------------------------------
+
     let verify_token_body = serde_json::json!({
         "token": token,
     });
@@ -136,18 +124,13 @@ async fn should_return_401_if_banned_token() {
             .error,
         "Invalid auth token".to_owned()
     );
-
-    app.clean_up().await;
-
 }
 
-#[tokio::test]
+#[api_test]
 async fn should_return_422_if_malformed_input() {
-
-    let mut app = TestApp::new().await;
     let test_cases = vec![
         serde_json::json!({
-            "invalid-token": ""
+            "token": true,
         }),
         serde_json::json!({}),
     ];
@@ -156,7 +139,4 @@ async fn should_return_422_if_malformed_input() {
         let response = app.post_verify_token(&test_case).await;
         assert_eq!(response.status().as_u16(), 422);
     }
-
-    app.clean_up().await;
-
 }
