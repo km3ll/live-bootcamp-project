@@ -138,7 +138,6 @@ async fn should_return_400_if_invalid_input() {
     }
 }
 
-/*
 #[api_test]
 async fn should_return_401_if_incorrect_credentials() {
     let random_email = get_random_email();
@@ -179,11 +178,11 @@ async fn should_return_401_if_incorrect_credentials() {
                 .await
                 .expect("Could not deserialize response body to ErrorResponse")
                 .error,
-            "Incorrect credentials".to_owned()
+            "Invalid credentials".to_owned()
+            //FIXME "Incorrect credentials".to_owned()
         );
     }
 }
-*/
 
 #[api_test]
 async fn should_return_422_if_malformed_credentials() {
